@@ -65,7 +65,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 mb-1">Phone</p>
-                      <p className="text-gray-500"><h3>+91 76069 67250</h3></p>
+                      <p className="text-gray-500 font-semibold">+91 76069 67250</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
