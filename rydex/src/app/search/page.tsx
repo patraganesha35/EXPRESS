@@ -21,7 +21,10 @@ const VEHICLE_META: any = {
   truck:   { label: "Truck",   Icon: Truck },
 };
 
-export default function SearchPage() {
+import { Suspense } from "react";
+
+/* ─── COMPONENT ─────────────────────────────────────────────────────── */
+function SearchContent() {
   const params = useSearchParams();
   const router = useRouter();
 
@@ -259,3 +262,16 @@ export default function SearchPage() {
     </div>
   );
 }
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zinc-100 flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 rounded-full border-4 border-zinc-200 border-t-zinc-900 animate-spin" />
+        <p className="text-zinc-400 text-sm font-medium animate-pulse uppercase tracking-widest">Searching vehicles…</p>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
+  );
+}

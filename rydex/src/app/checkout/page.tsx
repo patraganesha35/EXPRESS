@@ -22,7 +22,10 @@ type Status =
   | "rejected" | "expired" | "cancelled"
   | "payment" | "confirmed";
 
-export default function CheckoutPage() {
+import { Suspense } from "react";
+
+/* ─── COMPONENT ─────────────────────────────────────────────────────── */
+function CheckoutContent() {
   const params = useSearchParams();
   const { userData } = useSelector((state: RootState) => state.user);
 
@@ -643,5 +646,17 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zinc-100 flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-zinc-900" />
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }
