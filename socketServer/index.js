@@ -10,19 +10,34 @@ dotenv.config()
 import mongoose from "mongoose"
 import User from "./models/user.models.js"
 
-await mongoose.connect(process.env.MONGODB_URL)
-const app=express()
-app.use(express.json())
-const server=http.createServer(app)
-const port=process.env.PORT || 5000
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) return;
+  await mongoose.connect(process.env.MONGODB_URL);
+};
 
-const io=new Server(server,{
-    cors:{
-        origin:process.env.NEXT_BASE_URL
-    }
-})
+await connectDB();
 
+const app = express();
+app.use(express.json());
 
+const corsOptions = {
+  origin: process.env.NEXT_BASE_URL || "*",
+  methods: ["GET", "POST"],
+};
+
+import cors from "cors";
+app.use(cors(corsOptions));
+
+const server = http.createServer(app);
+const port = process.env.PORT || 5000;
+
+const io = new Server(server, {
+  cors: corsOptions
+});
+
+app.get("/", (req, res) => {
+  res.send("Socket Server is Running");
+});
 
 app.post("/emit", async (req, res) => {
   const { userId, event, data } = req.body;
@@ -41,71 +56,53 @@ app.post("/emit", async (req, res) => {
 });
 
 io.on("connection", (socket) => {
-
   socket.on("identity", async (userId) => {
-
-    socket.userId = userId
-
+    socket.userId = userId;
     await User.findByIdAndUpdate(userId, {
       socketId: socket.id,
       isOnline: true
-    })
+    });
+  });
 
-  })
+  socket.on("join-booking", (bookingId) => {
+    socket.join(`booking-${bookingId}`);
+  });
 
-// server.js — sab jagah ek hi format rakho
-
-socket.on("join-booking", (bookingId) => {
-  console.log("joining room:", `booking-${bookingId}`);
-  socket.join(`booking-${bookingId}`);  // ← prefix add karo
-});
-
-socket.on("driver-location-update", (data) => {
-  io.to(`booking-${data.bookingId}`)   // ✅ already sahi
-    .emit("driver-location", {
+  socket.on("driver-location-update", (data) => {
+    io.to(`booking-${data.bookingId}`).emit("driver-location", {
       latitude: data.latitude,
       longitude: data.longitude,
       status: "arriving"
     });
-});
+  });
 
-socket.on("chat-message", (msg) => {
-  console.log("chat to room:", `booking-${msg.rideId}`);
-  io.to(`booking-${msg.rideId}`).emit("chat-message", msg);  // ← prefix add karo
-});
+  socket.on("chat-message", (msg) => {
+    io.to(`booking-${msg.rideId}`).emit("chat-message", msg);
+  });
 
   socket.on("update-location", async ({ latitude, longitude }) => {
-
-    if (!socket.userId) return
-
+    if (!socket.userId) return;
     await User.findByIdAndUpdate(socket.userId, {
       location: {
         type: "Point",
         coordinates: [longitude, latitude]
       }
-    })
-
-  })
- 
+    });
+  });
 
   socket.on("disconnect", async () => {
-
-    if (!socket.userId) return
-
+    if (!socket.userId) return;
     await User.findByIdAndUpdate(socket.userId, {
       isOnline: false,
       socketId: null
-    })
+    });
+  });
+});
 
-  })
+if (process.env.NODE_ENV !== "production") {
+  server.listen(port, () => {
+    console.log("server started at", port);
+  });
+}
 
-})
-
-
-
-
-
-
-server.listen(port,()=>{
-    console.log("server started at",port)
-})
+export default app;
