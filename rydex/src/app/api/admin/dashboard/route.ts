@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import connectDb from "@/lib/db";
+export const dynamic = "force-dynamic";
 
 import User from "@/models/user.model";
 import Vehicle from "@/models/vehicle.model";
