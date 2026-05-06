@@ -57,18 +57,13 @@ export async function POST(req: Request) {
 
     await booking.save();
 
-    // Emit socket event to update dashboard for driver and user
+    // Emit socket event to update everyone in the booking room
     try {
       if (process.env.NEXT_PUBLIC_SOCKET_SERVER) {
-        await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
-          userId: booking.driver,
+        await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit-room`, {
+          roomId: `booking-${bookingId}`,
           event: "booking-updated",
-          data: { bookingId: booking._id, status: "completed" }
-        });
-        await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
-          userId: booking.user,
-          event: "booking-updated",
-          data: { bookingId: booking._id, status: "completed" }
+          data: { status: "completed" }
         });
 
         // Notify Admins to update their earnings dashboard

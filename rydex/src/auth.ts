@@ -7,8 +7,8 @@ import Google from "next-auth/providers/google"
  
 const ADMIN_EMAILS = ['patraganesha35@gmail.com', 'asitraut2006@gmail.com'];
  
-if (!process.env.GOOGLE_CLIENT_ID) console.warn("⚠️ GOOGLE_CLIENT_ID is missing");
-if (!process.env.GOOGLE_CLIENT_SECRET) console.warn("⚠️ GOOGLE_CLIENT_SECRET is missing");
+if (!process.env.AUTH_GOOGLE_ID) console.warn("⚠️ AUTH_GOOGLE_ID is missing");
+if (!process.env.AUTH_GOOGLE_SECRET) console.warn("⚠️ AUTH_GOOGLE_SECRET is missing");
 if (!process.env.AUTH_SECRET) console.warn("⚠️ AUTH_SECRET is missing");
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -69,8 +69,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     }),
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET
     }),
   ],
   callbacks: {

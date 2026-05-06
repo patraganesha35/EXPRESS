@@ -13,6 +13,7 @@ import User from "./models/user.models.js"
 const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
   await mongoose.connect(process.env.MONGODB_URL);
+  console.log("✅ Connected to MongoDB");
 };
 
 await connectDB();
@@ -55,6 +56,18 @@ app.post("/emit", async (req, res) => {
   }
 });
 
+app.post("/emit-room", async (req, res) => {
+  const { roomId, event, data } = req.body;
+
+  try {
+    console.log(`[EMIT-ROOM] ${roomId} -> ${event}`, data);
+    io.to(roomId).emit(event, data);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false });
+  }
+});
+
 io.on("connection", (socket) => {
   socket.on("identity", async (userId) => {
     socket.userId = userId;
@@ -72,7 +85,7 @@ io.on("connection", (socket) => {
     io.to(`booking-${data.bookingId}`).emit("driver-location", {
       latitude: data.latitude,
       longitude: data.longitude,
-      status: "arriving"
+      status: data.status || "arriving"
     });
   });
 

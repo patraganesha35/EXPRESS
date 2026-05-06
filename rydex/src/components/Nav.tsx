@@ -13,6 +13,7 @@ import {
   Car,
   Truck,
   ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import AuthModal from "./AuthModal";
 import { useDispatch, useSelector } from "react-redux";
@@ -359,9 +360,35 @@ function ProfileContent({ userData, handleLogout, router, mobile }: any) {
       <p className="font-semibold text-lg">{userData.name}</p>
       <p className="text-xs uppercase text-gray-500 mb-4">{userData.role}</p>
 
-      {userData.role !== "vendor" && (
+      {userData.role === "admin" ? (
         <button
-          onClick={() => router.push("/partner/onboard/vehicle")}
+          onClick={() => router.push("/admin/dashboard")}
+          className="w-full flex items-center gap-3 py-3 hover:bg-gray-100 rounded-xl"
+        >
+          <ShieldCheck size={16} />
+          Admin Dashboard
+          <ChevronRight size={16} className="ml-auto" />
+        </button>
+      ) : userData.role === "vendor" ? (
+        <button
+          onClick={() => router.push("/")}
+          className="w-full flex items-center gap-3 py-3 hover:bg-gray-100 rounded-xl"
+        >
+          <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center">
+            <Car size={14} />
+          </div>
+          Partner Dashboard
+          <ChevronRight size={16} className="ml-auto" />
+        </button>
+      ) : (
+        <button
+          onClick={() => {
+            const step = userData.vendorOnboardingStep || 0;
+            if (step === 0) router.push("/partner/onboard/vehicle");
+            else if (step === 1) router.push("/partner/onboard/documents");
+            else if (step === 2) router.push("/partner/onboard/bank");
+            else router.push("/");
+          }}
           className="w-full flex items-center gap-3 py-3 hover:bg-gray-100 rounded-xl"
         >
           <VehicleStack />

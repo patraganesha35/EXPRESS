@@ -194,6 +194,9 @@ function CheckoutContent() {
       if (userData?._id) {
         socket.emit("identity", userData._id);
       }
+      if (bookingId) {
+        socket.emit("join-booking", bookingId);
+      }
     };
 
     if (socket.connected) {
@@ -212,7 +215,7 @@ function CheckoutContent() {
       socket.off("connect", emitIdentity);
       socket.off("booking-updated"); 
     };
-  }, [userData?._id]);
+  }, [userData?._id, bookingId]);
 
   /* ── RESTORE ── */
   useEffect(() => {

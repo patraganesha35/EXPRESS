@@ -39,6 +39,7 @@ interface BookingDetails {
   userMobileNumber: string;
   driverMobileNumber: string;
   pickupOtp?: string;
+  dropOtp?:   string;
 }
 
 /* ─── STATUS CONFIG ──────────────────────────────────────────────────── */
@@ -121,9 +122,11 @@ export default function RidePage() {
     
     socket.on("connect", emitIdentity);
 
+    console.log("Socket: Joining booking room", id);
     socket.emit("join-booking", id);
     socket.on("driver-location", (data: any) => setDriverPos([data.latitude, data.longitude]));
     socket.on("booking-updated", (data: any) => {
+      console.log("Socket: booking-updated received", data);
       setBooking(prev => prev ? { ...prev, ...data } : null);
       /* close chat if ride moves past confirmed */
       if (data.status && data.status !== "confirmed") setChatOpen(false);
@@ -693,6 +696,12 @@ function PanelContent({
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5">Drop</p>
               <p className="text-sm text-zinc-800 leading-snug">{booking.dropAddress || "—"}</p>
+              {booking.dropOtp && status === "started" && (
+                <div className="mt-1.5 inline-flex items-center gap-1.5 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-lg">
+                  <p className="text-amber-700 text-xs font-black tracking-widest font-mono">{booking.dropOtp}</p>
+                  <p className="text-amber-600 text-[10px] font-semibold">DROP OTP</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

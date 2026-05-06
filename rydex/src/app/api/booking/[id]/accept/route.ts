@@ -20,17 +20,18 @@ export async function POST(
 
   await booking.save();
 
+  console.log(`Acceptance: Sending socket update to room booking-${id}`);
   await axios.post(
-  `${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`,
-  {
-    userId: booking.user,
-    event: "booking-updated",
-    data: {
-      bookingId: booking._id,
-      status: "awaiting_payment",
-    },
-  }
-);
+    `${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit-room`,
+    {
+      roomId: `booking-${id}`,
+      event: "booking-updated",
+      data: {
+        bookingId: id,
+        status: "awaiting_payment",
+      },
+    }
+  );
 
   return NextResponse.json({ success: true });
 }

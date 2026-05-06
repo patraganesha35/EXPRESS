@@ -23,24 +23,13 @@ export async function POST(
 
   try {
     if (process.env.NEXT_PUBLIC_SOCKET_SERVER) {
-      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
-        userId: booking.driver,
+      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit-room`, {
+        roomId: `booking-${id}`,
         event: "booking-updated",
         data: { 
-          bookingId: booking._id, 
           status: "confirmed", 
           paymentStatus: booking.paymentStatus,
           paymentMethod: method 
-        }
-      });
-      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
-        userId: booking.user,
-        event: "booking-updated",
-        data: { 
-          bookingId: booking._id, 
-          status: "confirmed",
-          paymentStatus: booking.paymentStatus,
-          paymentMethod: method
         }
       });
     }

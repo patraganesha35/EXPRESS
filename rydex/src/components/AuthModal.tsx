@@ -7,6 +7,7 @@ import { X, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type Props = {
   open: boolean;
@@ -98,6 +99,8 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
 
 
 
+  const router = useRouter();
+
   // 🔐 LOGIN (NextAuth Credentials)
   const handleLogin = async () => {
     const res = await signIn("credentials", {
@@ -112,7 +115,15 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
       return;
     }
 
-    onClose();
+    if (res?.ok) {
+      const isAdmin = ['asitraut2006@gmail.com', 'patraganesha35@gmail.com'].includes(email);
+      if (isAdmin) {
+        router.push("/admin/dashboard");
+      } else {
+        router.refresh();
+      }
+      onClose();
+    }
   };
 
   // 🔥 GOOGLE LOGIN

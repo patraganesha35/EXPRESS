@@ -183,7 +183,14 @@ export default function DriverRidePage() {
     socket.emit("join-booking", booking._id);
     socket.on("driver-location", (d: any) => setDriverPos([d.latitude, d.longitude]));
     
-    socket.on("booking-updated", () => {
+    socket.on("booking-updated", (data: any) => {
+      if (data?.status) {
+        setBooking(prev => prev ? { ...prev, ...data } : null);
+        if (data.status === "started") { setOtpVerified(true); setOtpMode(false); }
+        if (data.status === "completed") { setOtpVerified(true); }
+      }
+      
+      // Still fetch for full data consistency if needed
       fetch("/api/partner/bookings/active")
         .then(r => r.ok ? r.json() : null)
         .then(data => {

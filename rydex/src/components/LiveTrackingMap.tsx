@@ -131,6 +131,16 @@ export default function LiveRideMap({
   useEffect(() => {
     if (!driverLocation) return;
 
+    // Only fetch if driver moved significantly or status changed
+    const dist = prevLocation.current ? 
+      Math.sqrt(Math.pow(driverLocation[0] - prevLocation.current[0], 2) + Math.pow(driverLocation[1] - prevLocation.current[1], 2)) 
+      : 1;
+
+    if (dist < 0.00001 && prevStatus.current === status) return;
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     const base = "https://router.project-osrm.org/route/v1/driving/";
     const qs   = "?overview=full&geometries=geojson";
     const [dlat, dlng]   = driverLocation;
@@ -143,8 +153,8 @@ export default function LiveRideMap({
     if (status === "arriving") {
       // Fetch route to pickup AND route to drop (for ETA display)
       Promise.all([
-        fetch(`${base}${dlng},${dlat};${plng},${plat}${qs}`).then(r => r.json()),
-        fetch(`${base}${dlng},${dlat};${drlng},${drlat}${qs}`).then(r => r.json()),
+        fetch(`${base}${dlng},${dlat};${plng},${plat}${qs}`, { signal }).then(r => r.json()),
+        fetch(`${base}${dlng},${dlat};${drlng},${drlat}${qs}`, { signal }).then(r => r.json()),
       ]).then(([pData, dData]) => {
         if (pData.routes?.length)
           setRouteToPickup(
@@ -160,6 +170,9 @@ export default function LiveRideMap({
           distanceToDrop:   (dData.routes?.[0]?.distance ?? 0) / 1000,
           durationToDrop:   (dData.routes?.[0]?.duration ?? 0) / 60,
         });
+      }).catch(err => {
+        if (err.name === 'AbortError') return;
+        console.error("OSRM Error:", err);
       });
 
     } else {
@@ -167,7 +180,7 @@ export default function LiveRideMap({
       // Clear pickup route immediately when status changes away from arriving
       if (statusChanged) setRouteToPickup([]);
 
-      fetch(`${base}${dlng},${dlat};${drlng},${drlat}${qs}`)
+      fetch(`${base}${dlng},${dlat};${drlng},${drlat}${qs}`, { signal })
         .then(r => r.json())
         .then(dData => {
           if (dData.routes?.length)
@@ -180,12 +193,17 @@ export default function LiveRideMap({
             distanceToDrop:   (dData.routes?.[0]?.distance ?? 0) / 1000,
             durationToDrop:   (dData.routes?.[0]?.duration ?? 0) / 60,
           });
+        }).catch(err => {
+          if (err.name === 'AbortError') return;
+          console.error("OSRM Error:", err);
         });
     }
 
     if (prevLocation.current) rotateCar(prevLocation.current, driverLocation);
     prevLocation.current = driverLocation;
-  }, [driverLocation, status]);
+
+    return () => controller.abort();
+  }, [driverLocation, status, pickupLocation, dropLocation]);
 
   return (
     <MapContainer
