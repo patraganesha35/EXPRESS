@@ -5,6 +5,8 @@ import User from "./models/user.model"
 import bcrypt from "bcryptjs"
 import Google from "next-auth/providers/google"
  
+const ADMIN_EMAILS = ['patraganesha35@gmail.com', 'asitraut2006@gmail.com'];
+ 
 if (!process.env.GOOGLE_CLIENT_ID) console.warn("⚠️ GOOGLE_CLIENT_ID is missing");
 if (!process.env.GOOGLE_CLIENT_SECRET) console.warn("⚠️ GOOGLE_CLIENT_SECRET is missing");
 if (!process.env.AUTH_SECRET) console.warn("⚠️ AUTH_SECRET is missing");
@@ -34,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Incorrect password")
         }
 
-        if (user.email === 'patraganesha35@gmail.com' && user.role !== 'admin') {
+        if (ADMIN_EMAILS.includes(user.email) && user.role !== 'admin') {
           user.role = 'admin';
           await user.save();
         }
@@ -63,10 +65,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             dbUser = await User.create({
               name: user.name,
               email: user.email,
-              role: user.email === 'patraganesha35@gmail.com' ? 'admin' : 'user'
+              role: ADMIN_EMAILS.includes(user.email as string) ? 'admin' : 'user'
               // image: user.image (optional)
             })
-          } else if (user.email === 'patraganesha35@gmail.com' && dbUser.role !== 'admin') {
+          } else if (ADMIN_EMAILS.includes(user.email as string) && dbUser.role !== 'admin') {
             dbUser.role = 'admin';
             await dbUser.save();
           }
