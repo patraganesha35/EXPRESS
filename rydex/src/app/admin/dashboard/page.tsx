@@ -88,8 +88,11 @@ export default function AdminDashboard() {
       setVehicleReviews(dashboardRes.data.pendingVehicles);
       setVideoKycReviews(kycRes.data || []);
       setFeedbacks(feedbackRes.data.feedbacks || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Dashboard error:", err);
+      if (err.response?.status === 401) {
+        router.push("/");
+      }
     } finally {
       setLoading(false);
     }

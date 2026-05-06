@@ -7,8 +7,8 @@ import VendorDashboard from "@/components/VendorDashboard";
 import User from "@/models/user.model";
 import connectDb from "@/lib/db";
 import PublicHome from "@/components/PublicHome";
-import AdminDashboard from "./admin/dashboard/page";
-import { redirect, RedirectType } from "next/navigation"
+
+import { redirect } from "next/navigation"
 import GeoUpdater from "@/components/GeoUpdater";
 
 export default async function Home() {
@@ -47,7 +47,7 @@ export default async function Home() {
           vendorStep={vendorData.vendorStep}
           vendorStatus={vendorData.vendorStatus}
         />
-      ) : session?.user?.role==="admin"?(redirect(`${process.env.NEXT_PUBLIC_APP_URL}/admin/dashboard`,RedirectType.push)): (
+      ) : session?.user?.role === "admin" ? redirect("/admin/dashboard") : (
         <PublicHome />
       )}
 
