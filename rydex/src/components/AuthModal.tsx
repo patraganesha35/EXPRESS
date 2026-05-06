@@ -13,7 +13,7 @@ type Props = {
   onClose: () => void;
 };
 
-type Step = "login" | "signup" | "otp";
+type Step = "login" | "signup" | "otp" | "forgot-password" | "reset-password";
 
 export default function AuthModal({ open, onClose }: Props) {
   const [step, setStep] = useState<Step>("login");
@@ -163,6 +163,35 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     }
   };
 
+  // 🔑 FORGOT PASSWORD
+  const handleForgotPassword = async () => {
+    try {
+      await axios.post("/api/auth/forgot-password", { email });
+      setStep("reset-password");
+      setOtp(["", "", "", "", "", ""]);
+      setPassword("");
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Failed to send reset code");
+    }
+  };
+
+  // 🔄 RESET PASSWORD
+  const handleResetPassword = async () => {
+    try {
+      await axios.post("/api/auth/reset-password", {
+        email,
+        otp: otp.join(""),
+        newPassword: password,
+      });
+      alert("Password reset successful. Please login.");
+      setStep("login");
+      setPassword("");
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Failed to reset password");
+    }
+  };
+
+
   return (
     <AnimatePresence>
       {open && (
@@ -269,6 +298,16 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
                           ) : (
                             <Eye size={18} />
                           )}
+                        </button>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setStep("forgot-password")}
+                          className="text-xs text-gray-500 hover:text-black hover:underline"
+                        >
+                          Forgot Password?
                         </button>
                       </div>
 
@@ -410,9 +449,95 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
                         </span>
                           )}
                     </div>
+                  </motion.div>
+                )}
 
+                {/* FORGOT PASSWORD */}
+                {step === "forgot-password" && (
+                  <motion.div
+                    key="forgot-password"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                  >
+                    <h2 className="text-xl font-semibold">Reset Password</h2>
+                    <p className="text-sm text-gray-500 mt-2">Enter your email to receive a reset code.</p>
 
+                    <div className="mt-5 space-y-4">
+                      <div className="flex items-center gap-3 border border-black/20 rounded-xl px-4 py-3">
+                        <Mail size={18} className="text-gray-500" />
+                        <input
+                          type="email"
+                          placeholder="Email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full bg-transparent outline-none text-sm"
+                        />
+                      </div>
 
+                      <button
+                        onClick={handleForgotPassword}
+                        className="w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition"
+                      >
+                        Send Code
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => setStep("login")}
+                      className="mt-6 w-full text-center text-sm text-gray-500 hover:text-black"
+                    >
+                      Back to Login
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* RESET PASSWORD */}
+                {step === "reset-password" && (
+                  <motion.div
+                    key="reset-password"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                  >
+                    <h2 className="text-xl font-semibold">New Password</h2>
+                    <p className="text-sm text-gray-500 mt-2">Enter the code sent to your email and your new password.</p>
+
+                    <div className="mt-5 space-y-4">
+                      <div className="mt-6 flex justify-between gap-2">
+                        {otp.map((digit, i) => (
+                          <input
+                            key={i}
+                            id={`otp-${i}`}
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) =>
+                              handleOtpChange(i, e.target.value)
+                            }
+                            onKeyDown={(e) => handleKeyDown(i, e)}
+                            className="w-10 h-12 text-center text-lg font-semibold rounded-xl bg-white border border-black/20 outline-none"
+                          />
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-3 border border-black/20 rounded-xl px-4 py-3">
+                        <Lock size={18} className="text-gray-500" />
+                        <input
+                          type="password"
+                          placeholder="New Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full bg-transparent outline-none text-sm"
+                        />
+                      </div>
+
+                      <button
+                        onClick={handleResetPassword}
+                        className="w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition"
+                      >
+                        Reset Password
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
