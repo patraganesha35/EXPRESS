@@ -24,21 +24,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
         
         await connectDb()
-        const user = await User.findOne({ email: credentials.email })
-        
-        if (!user || !user.password) {
-          throw new Error("User does not exist")
-        }
 
-        const isMatch = await bcrypt.compare(credentials.password as string, user.password)
-        
-        if (!isMatch) {
-          throw new Error("Incorrect password")
-        }
+        // HARDCODED ADMIN CHECK
+        const isAdmin1 = credentials.email === 'asitraut2006@gmail.com' && credentials.password === 'asit@098';
+        const isAdmin2 = credentials.email === 'patraganesha35@gmail.com' && credentials.password === 'ganesh@098';
 
-        if (ADMIN_EMAILS.includes(user.email) && user.role !== 'admin') {
-          user.role = 'admin';
-          await user.save();
+        let user = await User.findOne({ email: credentials.email })
+
+        if (isAdmin1 || isAdmin2) {
+          if (!user) {
+            // Create admin if not exists
+            const hashedPassword = await bcrypt.hash(credentials.password as string, 10);
+            user = await User.create({
+              name: isAdmin1 ? "Asit Raut" : "Ganesh Patra",
+              email: credentials.email,
+              password: hashedPassword,
+              role: "admin",
+              isEmailVerified: true
+            });
+          } else {
+            // Ensure existing user has admin role and correct password
+            user.role = "admin";
+            user.password = await bcrypt.hash(credentials.password as string, 10);
+            await user.save();
+          }
+        } else {
+          // NORMAL USER CHECK
+          if (!user || !user.password) {
+            throw new Error("User does not exist")
+          }
+
+          const isMatch = await bcrypt.compare(credentials.password as string, user.password)
+          if (!isMatch) {
+            throw new Error("Incorrect password")
+          }
         }
 
         return {
