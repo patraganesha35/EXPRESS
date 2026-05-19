@@ -74,7 +74,29 @@ export default function BookPage() {
 
   /* ── GPS ── */
   const useCurrentLocation = () => {
-    if (!navigator.geolocation) return;
+    const fetchIpLocation = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        if (data && data.city) {
+          setPickup(`${data.city}, ${data.region}, ${data.country_name}`);
+          setPickupCountry(data.country?.toLowerCase() || null);
+          setPickupLat(data.latitude);
+          setPickupLng(data.longitude);
+          setPickupResults([]);
+        }
+      } catch (err) {
+        console.error("IP Location fallback failed", err);
+      } finally {
+        setLocating(false);
+      }
+    };
+
+    if (!navigator.geolocation) {
+      fetchIpLocation();
+      return;
+    }
+
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
@@ -83,17 +105,27 @@ export default function BookPage() {
           const data = await res.json();
           if (data && data.address) {
             const p    = data.address;
-            const addr = [p.road || p.pedestrian, p.city || p.town || p.village, p.state, p.country].filter(Boolean).join(", ") || data.display_name || "Current Location";
+            // Use display_name for a more complete address, fallback to parts if somehow missing
+            const addr = data.display_name || [p.road || p.pedestrian, p.suburb || p.neighbourhood, p.city || p.town || p.village, p.state, p.country].filter(Boolean).join(", ") || "Current Location";
+            
             setPickup(addr);
             setPickupCountry(p.country_code?.toLowerCase() || null);
             setPickupLat(coords.latitude);
             setPickupLng(coords.longitude);
             setPickupResults([]);
           }
-        } finally { setLocating(false); }
+        } catch (err) {
+          console.error("Reverse geocoding failed", err);
+        } finally { 
+          setLocating(false); 
+        }
       },
-      () => setLocating(false),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      (err) => {
+        console.error("Geolocation failed:", err.message);
+        // Fallback to IP-based location if browser geolocation is denied or fails
+        fetchIpLocation();
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 

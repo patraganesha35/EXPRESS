@@ -5,6 +5,7 @@ import connectDb from "@/lib/db";
 import VehicleDocument from "@/models/vehicleDocument.model";
 import User from "@/models/user.model";
 import uploadOnCloudinary from "@/lib/cloudinary";
+import axios from "axios";
 
 /* ===========================
    GET → Fetch vendor documents
@@ -136,6 +137,22 @@ export async function POST(req: NextRequest) {
 
     user.vendorStatus = "pending";
     await user.save();
+
+    // 🔥 NOTIFY ADMINS
+    try {
+      const admins = await User.find({ role: "admin" }).select("_id").lean();
+      for (const admin of admins) {
+        await axios
+          .post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+            userId: admin._id,
+            event: "vendor-updated",
+            data: { message: "Vendor submitted documents" },
+          })
+          .catch((err) => console.error("Socket emit error:", err.message));
+      }
+    } catch (err) {
+      console.error("Admin notify error:", err);
+    }
 
     return NextResponse.json({
       success: true,

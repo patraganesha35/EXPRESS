@@ -4,6 +4,7 @@ import "./globals.css";
 import StoreProvider from "@/redux/StoreProvider";
 import InitUser from "@/initUser";
 import Provider from "@/Provider";
+import VendorNotification from "@/components/VendorNotification";
 import "leaflet/dist/leaflet.css";
 import { SessionProvider } from "next-auth/react";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
 <Provider>
         <StoreProvider>
           <InitUser/>
+          <VendorNotification />
           {children}
           
         </StoreProvider>

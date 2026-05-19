@@ -49,6 +49,25 @@ export default function VideoKYCPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [vendorData, setVendorData] = useState<any>(null);
+
+  /* ================= FETCH VENDOR DOCS & DETAILS ================= */
+  useEffect(() => {
+    if (isAdmin && roomId) {
+      const vendorId = roomId.split("-")[1];
+      if (vendorId) {
+        axios
+          .get(`/api/admin/vendors/${vendorId}`)
+          .then((res) => {
+            if (res.data.success) {
+              setVendorData(res.data.vendor);
+            }
+          })
+          .catch((err) => console.error("Failed to fetch vendor data:", err));
+      }
+    }
+  }, [isAdmin, roomId]);
+
   /* ================= CAMERA PREVIEW ================= */
 
 
@@ -265,14 +284,127 @@ const handleReject = async () => {
       </header>
 
       {/* BODY */}
-      <div className="flex-1 relative">
+      <div className={`flex-1 relative flex ${joined && isAdmin && vendorData ? "flex-col lg:flex-row" : "flex-col"} overflow-hidden`}>
 
-        <div
-          ref={containerRef}
-          className={`absolute inset-0 ${
-            joined ? "block" : "hidden"
-          }`}
-        />
+        {/* LEFT COLUMN (Video + Details) */}
+        <div className={`flex flex-col ${joined && isAdmin && vendorData ? "w-full lg:w-2/3 h-full overflow-y-auto" : "w-full h-full"}`}>
+          
+          <div
+            ref={containerRef}
+            className={`relative w-full ${joined && isAdmin && vendorData ? "h-[60vh] lg:h-[70vh] shrink-0" : "h-full"} ${
+              joined ? "block" : "hidden"
+            }`}
+          />
+
+          {joined && isAdmin && vendorData && (
+            <div className="p-6 bg-black grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-white/10">
+              {/* VEHICLE INFO */}
+              {vendorData.vehicle && (
+                <div className="bg-white/10 rounded-xl p-6 border border-white/10">
+                  <h3 className="text-lg font-bold mb-4 border-b border-white/20 pb-2 text-white">
+                    Vehicle Details
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Type</span>
+                      <span className="font-semibold">{vendorData.vehicle.type || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Model</span>
+                      <span className="font-semibold">{vendorData.vehicle.model || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Number Plate</span>
+                      <span className="font-semibold text-yellow-400 tracking-wider">
+                        {vendorData.vehicle.number || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* BANK INFO */}
+              {vendorData.bank && (
+                <div className="bg-white/10 rounded-xl p-6 border border-white/10">
+                  <h3 className="text-lg font-bold mb-4 border-b border-white/20 pb-2 text-white">
+                    Bank Details
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Account Holder</span>
+                      <span className="font-semibold">{vendorData.bank.accountHolderName || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">IFSC Code</span>
+                      <span className="font-semibold tracking-widest">{vendorData.bank.ifsc || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">UPI ID</span>
+                      <span className="font-semibold text-blue-300">{vendorData.bank.upi || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN (Documents) */}
+        {joined && isAdmin && vendorData && (
+          <div className="w-full lg:w-1/3 h-full overflow-y-auto px-6 py-6 bg-[#111] border-l border-white/10">
+            
+            {/* DOCUMENTS */}
+            {vendorData.documents && (
+              <div className="mb-10">
+                <h2 className="text-lg font-bold mb-4 border-b border-white/20 pb-2">
+                  Vendor Documents
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
+                  {vendorData.documents.aadhaarUrl && (
+                    <div className="bg-white/10 rounded-xl p-4 flex flex-col items-center">
+                      <p className="text-sm font-semibold mb-3 text-gray-300">Aadhaar Card</p>
+                      <img
+                        src={vendorData.documents.aadhaarUrl}
+                        alt="Aadhaar"
+                        className="w-full h-48 object-cover rounded-lg border border-white/20"
+                      />
+                      <a href={vendorData.documents.aadhaarUrl} target="_blank" rel="noreferrer" className="mt-3 text-xs text-blue-400 hover:underline">
+                        View Full Size
+                      </a>
+                    </div>
+                  )}
+                  {vendorData.documents.licenseUrl && (
+                    <div className="bg-white/10 rounded-xl p-4 flex flex-col items-center">
+                      <p className="text-sm font-semibold mb-3 text-gray-300">Driving License</p>
+                      <img
+                        src={vendorData.documents.licenseUrl}
+                        alt="License"
+                        className="w-full h-48 object-cover rounded-lg border border-white/20"
+                      />
+                      <a href={vendorData.documents.licenseUrl} target="_blank" rel="noreferrer" className="mt-3 text-xs text-blue-400 hover:underline">
+                        View Full Size
+                      </a>
+                    </div>
+                  )}
+                  {vendorData.documents.rcUrl && (
+                    <div className="bg-white/10 rounded-xl p-4 flex flex-col items-center">
+                      <p className="text-sm font-semibold mb-3 text-gray-300">Vehicle RC</p>
+                      <img
+                        src={vendorData.documents.rcUrl}
+                        alt="RC"
+                        className="w-full h-48 object-cover rounded-lg border border-white/20"
+                      />
+                      <a href={vendorData.documents.rcUrl} target="_blank" rel="noreferrer" className="mt-3 text-xs text-blue-400 hover:underline">
+                        View Full Size
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
 
         {!joined && (
           <div className="h-full flex items-center justify-center px-4 py-10">

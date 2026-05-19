@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import connectDB from "@/lib/db";
 import User from "@/models/user.model";
+import axios from "axios";
 
 export async function PATCH(req: Request) {
   try {
@@ -66,6 +67,17 @@ export async function PATCH(req: Request) {
     }
 
     await vendor.save();
+
+    // 🔥 NOTIFY VENDOR
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+        userId: vendor._id,
+        event: "vendor-status-changed",
+        data: { message: `Your Video KYC has been ${action}ed` },
+      });
+    } catch (err) {
+      console.error("Socket emit error:", err);
+    }
 
     return NextResponse.json({
       success: true,

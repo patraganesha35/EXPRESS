@@ -22,6 +22,9 @@ export interface IUser extends Document {
   email: string;
   password?: string;
   mobileNumber?: string;
+  profilePicture?: string;
+  gender?: "male" | "female" | "other";
+  dateOfBirth?: Date;
 
   role: UserRole;
 
@@ -76,6 +79,19 @@ const UserSchema = new Schema<IUser>(
     mobileNumber: {
       type: String,
       trim: true
+    },
+
+    profilePicture: {
+      type: String,
+    },
+
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+    },
+
+    dateOfBirth: {
+      type: Date,
     },
 
     role: {
@@ -177,7 +193,7 @@ const UserSchema = new Schema<IUser>(
 /* ===== GEO INDEX ===== */
 UserSchema.index({ location: "2dsphere" });
 
-const User =
-  mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+delete mongoose.models.User;
+const User = mongoose.model<IUser>("User", UserSchema);
 
 export default User;

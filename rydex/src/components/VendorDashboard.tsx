@@ -14,8 +14,10 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
+import { setUserData } from "@/redux/userSlice";
+import { getSocket } from "@/lib/socket";
 import PartnerEarningsChart from "./PartnerEarningChart";
 
 /* ================= TYPES ================= */
@@ -77,6 +79,42 @@ export default function VendorDashboard({
 
   const [showPricing, setShowPricing] = useState(false);
   const [pricing, setPricing] = useState<PricingData | null>(null);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    const emitIdentity = () => {
+      if (userData?._id) {
+        socket.emit("identity", userData._id);
+      }
+    };
+
+    if (socket.connected) {
+      emitIdentity();
+    }
+    socket.on("connect", emitIdentity);
+    emitIdentity();
+
+    const handleVendorStatusChanged = async () => {
+      try {
+        const res = await axios.get("/api/me");
+        dispatch(setUserData(res.data));
+        const priceRes = await axios.get("/api/partner/vehicle/pricing");
+        setPricing(priceRes.data.pricing);
+        router.refresh(); // 🔥 Refresh server component props
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    socket.on("vendor-status-changed", handleVendorStatusChanged);
+
+    return () => {
+      socket.off("connect", emitIdentity);
+      socket.off("vendor-status-changed", handleVendorStatusChanged);
+    };
+  }, [userData?._id, dispatch]);
   const requestKycAgain = async () => {
   try {
     await axios.patch("/api/partner/video-kyc/request");

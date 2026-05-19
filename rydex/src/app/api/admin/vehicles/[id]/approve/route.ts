@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import connectDb from "@/lib/db";
 import Vehicle from "@/models/vehicle.model";
 import User from "@/models/user.model";
+import axios from "axios";
 
 export async function POST(
   req: NextRequest,
@@ -32,6 +33,17 @@ export async function POST(
     await User.findByIdAndUpdate(vehicle.owner, {
       vendorOnboardingStep: 7,
     });
+
+    // 🔥 NOTIFY VENDOR
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+        userId: vehicle.owner,
+        event: "vendor-status-changed",
+        data: { message: "Your vehicle pricing has been approved" },
+      });
+    } catch (err) {
+      console.error("Socket emit error:", err);
+    }
 
     return NextResponse.json({
       message: "Vehicle pricing approved",

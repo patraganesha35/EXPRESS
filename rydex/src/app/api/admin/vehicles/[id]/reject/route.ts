@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import connectDb from "@/lib/db";
 import Vehicle from "@/models/vehicle.model";
+import axios from "axios";
 
 export async function POST(
   req: NextRequest,
@@ -34,6 +35,17 @@ export async function POST(
     vehicle.status = "rejected";
     vehicle.rejectionReason = reason;
     await vehicle.save();
+
+    // 🔥 NOTIFY VENDOR
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+        userId: vehicle.owner,
+        event: "vendor-status-changed",
+        data: { message: "Your vehicle pricing has been rejected" },
+      });
+    } catch (err) {
+      console.error("Socket emit error:", err);
+    }
 
     return NextResponse.json({
       message: "Vehicle pricing rejected",

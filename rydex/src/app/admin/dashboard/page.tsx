@@ -22,12 +22,14 @@ import {
   LogOut,
   Mail,
   MessageSquare,
+  User,
 } from "lucide-react";
 import { getSocket } from "@/lib/socket";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
 import AdminEarningsChart from "@/components/AdminEarning";
 import StatusAreaChart from "@/components/AdminStatusChart";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -46,6 +48,7 @@ type TabType = "kyc" | "vendor" | "vehicle" | "feedback";
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [stats, setStats] = useState<Stats | null>(null);
   const [vendorReviews, setVendorReviews] = useState<any[]>([]);
@@ -66,14 +69,24 @@ export default function AdminDashboard() {
     loadAll();
 
     const socket = getSocket();
+    
+    if (session?.user?.id) {
+      socket.emit("identity", session.user.id);
+    }
+
     socket.on("new-feedback", (data) => {
       setFeedbacks((prev) => [data, ...prev]);
     });
 
+    socket.on("vendor-updated", () => {
+      loadAll();
+    });
+
     return () => {
       socket.off("new-feedback");
+      socket.off("vendor-updated");
     };
-  }, []);
+  }, [session]);
 
   async function loadAll() {
     try {
@@ -140,6 +153,7 @@ export default function AdminDashboard() {
               <ShieldCheck size={14} />
               Secure Mode
             </div>
+
             <button 
               onClick={() => signOut({ callbackUrl: '/' })}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors"

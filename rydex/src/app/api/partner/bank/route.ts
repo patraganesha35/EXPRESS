@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import connectDb from "@/lib/db";
+import axios from "axios";
 
 import User from "@/models/user.model";
 import PartnerBank from "@/models/partnerBank.model";
@@ -52,6 +53,22 @@ export async function POST(req: NextRequest) {
     }
 
     await User.findByIdAndUpdate(session.user.id, updateData);
+
+    // 🔥 NOTIFY ADMINS
+    try {
+      const admins = await User.find({ role: "admin" }).select("_id").lean();
+      for (const admin of admins) {
+        await axios
+          .post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+            userId: admin._id,
+            event: "vendor-updated",
+            data: { message: "New vendor submission" },
+          })
+          .catch((err) => console.error("Socket emit error:", err.message));
+      }
+    } catch (err) {
+      console.error("Failed to notify admins:", err);
+    }
 
     return NextResponse.json({
       success: true,

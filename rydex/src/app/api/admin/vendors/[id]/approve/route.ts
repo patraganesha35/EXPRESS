@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "@/lib/db";
 import { auth } from "@/auth";
+import axios from "axios";
 
 import User from "@/models/user.model";
 import VehicleDocument from "@/models/vehicleDocument.model";
@@ -58,6 +59,17 @@ export async function POST(
     user.videoKycStatus = "pending";
     user.vendorApprovedAt = new Date(); // optional field
     await user.save();
+
+    // 🔥 NOTIFY VENDOR
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+        userId: vendorId,
+        event: "vendor-status-changed",
+        data: { message: "Your vendor account has been approved" },
+      });
+    } catch (err) {
+      console.error("Socket emit error:", err);
+    }
 
     return NextResponse.json({
       success: true,

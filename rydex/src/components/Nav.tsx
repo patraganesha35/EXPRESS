@@ -14,6 +14,7 @@ import {
   Truck,
   ChevronRight,
   ShieldCheck,
+  User,
 } from "lucide-react";
 import AuthModal from "./AuthModal";
 import { useDispatch, useSelector } from "react-redux";
@@ -189,9 +190,13 @@ export default function Nav() {
                 <>
                   <button
                     onClick={() => setProfileOpen((p) => !p)}
-                    className="w-11 h-11 rounded-full bg-white text-black font-bold"
+                    className="w-11 h-11 rounded-full bg-white text-black font-bold flex items-center justify-center overflow-hidden border border-white/20"
                   >
-                    {userData.name?.charAt(0).toUpperCase()}
+                    {userData.profilePicture ? (
+                      <img src={userData.profilePicture} alt={userData.name} className="w-full h-full object-cover" />
+                    ) : (
+                      userData.name?.charAt(0).toUpperCase()
+                    )}
                   </button>
 
                   <AnimatePresence>
@@ -202,7 +207,7 @@ export default function Nav() {
                         exit={{ opacity: 0, y: -10 }}
                         className="absolute top-14 right-0 w-[300px] bg-white text-black rounded-2xl shadow-xl border"
                       >
-                        <ProfileContent userData={userData} handleLogout={handleLogout} router={router} />
+                        <ProfileContent userData={userData} handleLogout={handleLogout} router={router} setProfileOpen={setProfileOpen} />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -219,9 +224,13 @@ export default function Nav() {
               ) : (
                 <button
                   onClick={() => setProfileOpen(true)}
-                  className="w-9 h-9 rounded-full bg-white text-black font-bold"
+                  className="w-9 h-9 rounded-full bg-white text-black font-bold flex items-center justify-center overflow-hidden border border-white/20"
                 >
-                  {userData.name?.charAt(0).toUpperCase()}
+                  {userData.profilePicture ? (
+                    <img src={userData.profilePicture} alt={userData.name} className="w-full h-full object-cover" />
+                  ) : (
+                    userData.name?.charAt(0).toUpperCase()
+                  )}
                 </button>
               )}
             </div>
@@ -343,7 +352,7 @@ export default function Nav() {
               transition={{ type: "spring", damping: 25 }}
               className="fixed inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl z-50 md:hidden"
             >
-              <ProfileContent userData={userData} handleLogout={handleLogout} router={router} mobile />
+              <ProfileContent userData={userData} handleLogout={handleLogout} router={router} mobile setProfileOpen={setProfileOpen} />
             </motion.div>
           </>
         )}
@@ -354,7 +363,7 @@ export default function Nav() {
   );
 }
 
-function ProfileContent({ userData, handleLogout, router, mobile }: any) {
+function ProfileContent({ userData, handleLogout, router, mobile, setProfileOpen }: any) {
   return (
     <div className={`${mobile ? "p-6 pb-10" : "p-5"}`}>
       <p className="font-semibold text-lg">{userData.name}</p>
@@ -396,6 +405,19 @@ function ProfileContent({ userData, handleLogout, router, mobile }: any) {
           <ChevronRight size={16} className="ml-auto" />
         </button>
       )}
+
+      {/* Profile Link */}
+      <button
+        onClick={() => {
+          setProfileOpen?.(false);
+          router.push("/profile");
+        }}
+        className="w-full flex items-center gap-3 py-3 hover:bg-gray-100 rounded-xl mt-4"
+      >
+        <User size={16} />
+        My Profile
+        <ChevronRight size={16} className="ml-auto" />
+      </button>
 
       <button
         onClick={handleLogout}

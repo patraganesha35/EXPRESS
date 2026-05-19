@@ -4,6 +4,7 @@ import connectDb from "@/lib/db";
 import User from "@/models/user.model";
 import Vehicle from "@/models/vehicle.model";
 import { NextRequest, NextResponse } from "next/server";
+import axios from "axios";
 
 export async function POST(req: NextRequest) {
   try {
@@ -80,6 +81,21 @@ export async function POST(req: NextRequest) {
       user.vendorOnboardingStep = 6;
       await user.save();
    
+    // 🔥 NOTIFY ADMINS
+    try {
+      const admins = await User.find({ role: "admin" }).select("_id").lean();
+      for (const admin of admins) {
+        await axios
+          .post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+            userId: admin._id,
+            event: "vendor-updated",
+            data: { message: "Vendor submitted pricing" },
+          })
+          .catch((err) => console.error("Socket emit error:", err.message));
+      }
+    } catch (err) {
+      console.error("Admin notify error:", err);
+    }
 
     return NextResponse.json({
       message: "Pricing submitted for admin review",
