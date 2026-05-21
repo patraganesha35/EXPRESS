@@ -21,9 +21,18 @@ await connectDB();
 const app = express();
 app.use(express.json());
 
+// const corsOptions = {
+//   origin: process.env.NEXT_BASE_URL || "*",
+//   methods: ["GET", "POST"],
+// };
+
 const corsOptions = {
-  origin: process.env.NEXT_BASE_URL || "*",
+  origin: [
+    "https://express-iota-livid.vercel.app",
+    "http://localhost:3000"
+  ],
   methods: ["GET", "POST"],
+  credentials: true
 };
 
 import cors from "cors";
@@ -32,8 +41,19 @@ app.use(cors(corsOptions));
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
+// const io = new Server(server, {
+//   cors: corsOptions
+// });
+
 const io = new Server(server, {
-  cors: corsOptions
+  cors: {
+    origin: [
+      "https://express-iota-livid.vercel.app",
+      "http://localhost:3000"
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
 app.get("/", (req, res) => {
@@ -118,4 +138,4 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-export default app;
+export default app;
