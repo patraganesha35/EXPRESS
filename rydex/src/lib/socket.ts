@@ -1,11 +1,28 @@
-import { io, Socket } from "socket.io-client"
+// import { io, Socket } from "socket.io-client"
 
-let socket:Socket|null=null
+// let socket:Socket|null=null
 
-export const getSocket=()=>{
-if(typeof window === "undefined") return null;
-if(!socket){
-    socket=io(process.env.NEXT_PUBLIC_SOCKET_SERVER)
-}
-return socket
-}
+// export const getSocket=()=>{
+// if(typeof window === "undefined") return null;
+// if(!socket){
+//     socket=io(process.env.NEXT_PUBLIC_SOCKET_SERVER)
+// }
+// return socket
+// }
+
+import { io, Socket } from "socket.io-client";
+
+let socket: Socket | null = null;
+
+export const getSocket = () => {
+  if (typeof window === "undefined") return null;
+
+  if (!socket) {
+    socket = io(process.env.NEXT_PUBLIC_SOCKET_SERVER as string, {
+      transports: ["websocket", "polling"],
+      withCredentials: true,
+    });
+  }
+
+  return socket;
+};
