@@ -50,8 +50,14 @@ const io = new Server(server, {
   },
 });
 
+// app.get("/", (req, res) => {
+//   res.send("Socket Server is Running");
+// });
 app.get("/", (req, res) => {
-  res.send("Socket Server is Running");
+  res.status(200).json({
+    success: true,
+    message: "Socket Server is Running",
+  });
 });
 
 app.post("/emit", async (req, res) => {
@@ -126,10 +132,14 @@ io.on("connection", (socket) => {
   });
 });
 
-if (process.env.NODE_ENV !== "production") {
-  server.listen(port, () => {
-    console.log("server started at", port);
-  });
-}
+// if (process.env.NODE_ENV !== "production") {
+//   server.listen(port, () => {
+//     console.log("server started at", port);
+//   });
+// }
+
+server.listen(port, () => {
+  console.log("server started at", port);
+});
 
 export default app;
