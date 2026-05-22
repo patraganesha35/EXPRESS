@@ -1,14 +1,14 @@
 // Trigger nodemon restart
-import express from "express"
-import http from "http"
-import dotenv from "dotenv"
-import { Server } from "socket.io"
-import axios from "axios"
+import express from "express";
+import http from "http";
+import dotenv from "dotenv";
+import { Server } from "socket.io";
+import axios from "axios";
 
-dotenv.config()
+dotenv.config();
 
-import mongoose from "mongoose"
-import User from "./models/user.models.js"
+import mongoose from "mongoose";
+import User from "./models/user.models.js";
 
 const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
@@ -27,12 +27,9 @@ app.use(express.json());
 // };
 
 const corsOptions = {
-  origin: [
-    "https://express-iota-livid.vercel.app",
-    "http://localhost:3000"
-  ],
+  origin: ["https://express-iota-livid.vercel.app", "http://localhost:3000"],
   methods: ["GET", "POST"],
-  credentials: true
+  credentials: true,
 };
 
 import cors from "cors";
@@ -47,13 +44,10 @@ const port = process.env.PORT || 5000;
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "https://express-iota-livid.vercel.app",
-      "http://localhost:3000"
-    ],
+    origin: ["https://express-iota-livid.vercel.app", "http://localhost:3000"],
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 app.get("/", (req, res) => {
@@ -93,7 +87,7 @@ io.on("connection", (socket) => {
     socket.userId = userId;
     await User.findByIdAndUpdate(userId, {
       socketId: socket.id,
-      isOnline: true
+      isOnline: true,
     });
   });
 
@@ -105,7 +99,7 @@ io.on("connection", (socket) => {
     io.to(`booking-${data.bookingId}`).emit("driver-location", {
       latitude: data.latitude,
       longitude: data.longitude,
-      status: data.status || "arriving"
+      status: data.status || "arriving",
     });
   });
 
@@ -118,8 +112,8 @@ io.on("connection", (socket) => {
     await User.findByIdAndUpdate(socket.userId, {
       location: {
         type: "Point",
-        coordinates: [longitude, latitude]
-      }
+        coordinates: [longitude, latitude],
+      },
     });
   });
 
@@ -127,7 +121,7 @@ io.on("connection", (socket) => {
     if (!socket.userId) return;
     await User.findByIdAndUpdate(socket.userId, {
       isOnline: false,
-      socketId: null
+      socketId: null,
     });
   });
 });
