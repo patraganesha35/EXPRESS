@@ -3,18 +3,19 @@ import connectDb from "@/lib/db";
 import Booking from "@/models/booking.model";
 import User from "@/models/user.model";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDb();
     
     const body = await req.json();
     const { rating } = body;
+    const { id } = await params;
 
     if (!rating || rating < 1 || rating > 5) {
       return NextResponse.json({ success: false, message: "Invalid rating" }, { status: 400 });
     }
 
-    const booking = await Booking.findById(params.id);
+    const booking = await Booking.findById(id);
     if (!booking) {
       return NextResponse.json({ success: false, message: "Booking not found" }, { status: 404 });
     }
