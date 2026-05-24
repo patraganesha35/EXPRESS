@@ -222,7 +222,14 @@ function CheckoutContent() {
     (async () => {
       const res  = await fetch("/api/booking/my-active");
       const data = await res.json();
-      if (data.booking) { setBookingId(data.booking._id); setStatus(data.booking.status); }
+      if (data.booking) {
+        if (["confirmed", "started"].includes(data.booking.status)) {
+          window.location.href = `/ride/${data.booking._id}`;
+        } else {
+          setBookingId(data.booking._id);
+          setStatus(data.booking.status);
+        }
+      }
     })();
   }, []);
 

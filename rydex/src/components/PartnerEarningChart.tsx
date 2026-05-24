@@ -58,19 +58,19 @@ export default function PartnerEarningsChart() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    // Generate last 7 days skeleton
+    const skeleton: Earnings[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+      skeleton.push({ date: dateStr, earnings: 0 });
+    }
+
     axios.get("/api/partner/earnings")
       .then((res) => {
         const earningsArray = res.data?.earnings || [];
         
-        // Generate last 7 days skeleton
-        const skeleton: Earnings[] = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-          skeleton.push({ date: dateStr, earnings: 0 });
-        }
-
         // Merge actual earnings into skeleton
         earningsArray.forEach((item: Earnings) => {
           const found = skeleton.find(s => s.date === item.date);
@@ -84,6 +84,7 @@ export default function PartnerEarningsChart() {
       })
       .catch((err) => {
         console.error("Failed to fetch earnings:", err);
+        setData(skeleton); // Set skeleton data so chart has something to render
         setLoaded(true); // ensure chart renders even on error
       });
   }, []);

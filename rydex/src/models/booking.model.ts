@@ -50,7 +50,8 @@ partnerAmount: number
 pickupOtpExpires: Date
  dropOtp: string
 
-dropOtpExpires: Date
+  dropOtpExpires: Date
+  rating?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -123,9 +124,15 @@ pickupOtpExpires: {
   type: String,
 },
 
-dropOtpExpires: {
+    dropOtpExpires: {
   type: Date,
 },
+
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
 
     userMobileNumber: { 
       type: String, 

@@ -16,10 +16,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 1️⃣ Find nearby vendors
     const vendors = await User.find({
       role: "vendor",
-      isOnline: true,
       vendorStatus: "approved",
       location: {
         $near: {
@@ -44,7 +42,9 @@ export async function POST(req: NextRequest) {
       status: "approved",
       isActive: true,
       ...(vehicleType && { type: vehicleType })
-    }).lean()
+    })
+    .populate("owner", "name profilePicture averageRating")
+    .lean()
 
     return NextResponse.json({
       success: true,

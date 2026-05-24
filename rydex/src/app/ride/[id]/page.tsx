@@ -40,6 +40,7 @@ interface BookingDetails {
   driverMobileNumber: string;
   pickupOtp?: string;
   dropOtp?:   string;
+  rating?:    number;
 }
 
 /* ─── STATUS CONFIG ──────────────────────────────────────────────────── */
@@ -314,8 +315,31 @@ export default function RidePage() {
    COMPLETED FULL SCREEN
 ══════════════════════════════════════════════════════════════════════ */
 function CompletedScreen({ booking, router }: { booking: BookingDetails; router: any }) {
-  const [selectedRating, setSelectedRating] = useState(0);
-  const [submitted,      setSubmitted]      = useState(false);
+  const [selectedRating, setSelectedRating] = useState(booking.rating || 0);
+  const [submitted,      setSubmitted]      = useState(!!booking.rating);
+  const [isSubmitting,   setIsSubmitting]   = useState(false);
+
+  const handleSubmitRating = async () => {
+    if (selectedRating === 0) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/booking/${booking._id}/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: selectedRating })
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        alert("Failed to submit rating.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error submitting rating.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <motion.div
@@ -425,10 +449,11 @@ function CompletedScreen({ booking, router }: { booking: BookingDetails; router:
               {selectedRating > 0 && !submitted && (
                 <motion.button
                   initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  onClick={() => setSubmitted(true)}
-                  className="w-full bg-white text-zinc-900 py-3 rounded-xl text-sm font-bold hover:bg-zinc-100 transition-colors"
+                  onClick={handleSubmitRating}
+                  disabled={isSubmitting}
+                  className="w-full bg-white text-zinc-900 py-3 rounded-xl text-sm font-bold hover:bg-zinc-100 transition-colors disabled:opacity-70"
                 >
-                  Submit Rating
+                  {isSubmitting ? "Submitting..." : "Submit Rating"}
                 </motion.button>
               )}
               {submitted && (
@@ -726,7 +751,26 @@ function PanelContent({
       )}
 
       {/* CANCEL BUTTON */}
-     
+      {status === "requested" && (
+        <div className="mx-5 lg:mx-6">
+          <button
+            onClick={onCancel}
+            className="w-full flex items-center justify-center gap-2 border border-zinc-200 text-zinc-600 py-3 rounded-xl text-sm font-semibold hover:bg-zinc-50 active:scale-[0.98] transition-all"
+          >
+            <XCircle size={16} /> Cancel Request
+          </button>
+        </div>
+      )}
+      {(status === "confirmed" || status === "awaiting_payment") && (
+        <div className="mx-5 lg:mx-6 mt-2">
+          <button
+            onClick={onCancel}
+            className="w-full flex items-center justify-center gap-2 border border-red-100 text-red-500 py-3 rounded-xl text-sm font-semibold hover:bg-red-50 active:scale-[0.98] transition-all"
+          >
+            <XCircle size={16} /> Cancel Ride
+          </button>
+        </div>
+      )}
 
     </div>
   );

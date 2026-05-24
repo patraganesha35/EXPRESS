@@ -35,6 +35,9 @@ export interface IUser extends Document {
   vendorApprovedAt?: Date;
   isVendorBlocked: boolean;
 
+  averageRating?: number;
+  totalRatings?: number;
+
   videoKycStatus: VideoKycStatus;
   videoKycRoomId?: string;
   videoKycRejectionReason?: string;
@@ -126,6 +129,16 @@ const UserSchema = new Schema<IUser>(
     isVendorBlocked: {
       type: Boolean,
       default: false,
+    },
+
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+
+    totalRatings: {
+      type: Number,
+      default: 0,
     },
 
     /* ===== VIDEO KYC ===== */

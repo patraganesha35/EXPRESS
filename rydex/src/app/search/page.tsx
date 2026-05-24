@@ -241,7 +241,7 @@ function SearchContent() {
                     const url = new URLSearchParams({
                       pickup, drop,
                       vehicle:    v.type,
-                      driverId:   v.owner,
+                      driverId:   v.owner?._id || v.owner,
                       vehicleId:  v._id,
                       fare:       String(Math.round(v.baseFare + (km ?? 0) * v.pricePerKm)),
                       pickupLat:  String(pickupLat),

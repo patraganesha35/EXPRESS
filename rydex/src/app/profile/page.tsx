@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Camera, Save, ArrowLeft, User, Phone, Mail, Calendar, Loader2 } from "lucide-react";
+import { Camera, Save, ArrowLeft, User, Phone, Mail, Calendar, Loader2, Star } from "lucide-react";
 import axios from "axios";
 import { setUserData } from "@/redux/userSlice";
 
@@ -115,6 +115,17 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
             <p className="text-sm text-gray-400 mt-1">Manage your personal information</p>
           </div>
+          {userData.role === "vendor" && (
+            <div className="ml-auto bg-amber-400/10 border border-amber-400/20 px-4 py-2 rounded-2xl flex items-center gap-3">
+              <div className="bg-amber-400 text-zinc-900 w-10 h-10 rounded-xl flex items-center justify-center">
+                <Star size={20} className="fill-zinc-900" />
+              </div>
+              <div>
+                <p className="text-amber-400 font-black text-lg leading-none">{userData.averageRating || 0}</p>
+                <p className="text-amber-400/60 text-[10px] uppercase tracking-wider font-bold">{userData.totalRatings || 0} Ratings</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <motion.div 
