@@ -51,8 +51,8 @@ export async function POST(req: Request) {
 
   const { roomId } = await req.json();
 
-  const appID = Number(process.env.ZEGO_APP_ID);
-  const serverSecret = process.env.ZEGO_SERVER_SECRET!;
+  const appID = Number(process.env.ZEGO_APP_ID?.replace(/['"]/g, ""));
+  const serverSecret = process.env.ZEGO_SERVER_SECRET?.replace(/['"]/g, "")!;
 
   if (!roomId) {
     return NextResponse.json(

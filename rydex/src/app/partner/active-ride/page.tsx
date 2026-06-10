@@ -359,6 +359,7 @@ export default function DriverRidePage() {
     dropOtpMode, dropOtp, loadingDropOtp, dropOtpError,
     setDropOtpMode, setDropOtp, setDropOtpError, handleVerifyDropOtp, sendDropOtp,
     chatOpen, onChatToggle: () => canChat && setChatOpen(v => !v),
+    router,
   };
 
   return (
@@ -604,7 +605,7 @@ function ActionBar({
 /* ══════════════════════════════════════════════════════════════════════
    PANEL CONTENT
 ══════════════════════════════════════════════════════════════════════ */
-function PanelContent({ booking, status, isActive, canChat, displayEta, chatOpen, onChatToggle }: any) {
+function PanelContent({ booking, status, isActive, canChat, displayEta, chatOpen, onChatToggle, router }: any) {
   return (
     <div className="flex flex-col pt-5 pb-4 gap-3">
 
@@ -665,11 +666,12 @@ function PanelContent({ booking, status, isActive, canChat, displayEta, chatOpen
           {isActive && (
             <div className="flex gap-2 mt-2">
               {booking.userMobileNumber && (
-                <a href={`tel:${booking.userMobileNumber}`}
+                <button
+                  onClick={() => router.push(`/call/${booking._id}?role=driver`)}
                   className={`flex items-center justify-center gap-2 bg-zinc-100 hover:bg-zinc-200 active:scale-[0.97] transition-all text-zinc-900 py-3 rounded-xl text-sm font-semibold ${canChat ? "flex-1" : "w-full"}`}
                 >
                   <Phone size={15} /> Call
-                </a>
+                </button>
               )}
               {canChat && (
                 <button onClick={onChatToggle}

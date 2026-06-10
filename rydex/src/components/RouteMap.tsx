@@ -122,7 +122,7 @@ export default function RouteMap({ pickup, drop, onDistance, onChange }: Props) 
 
   const geocode = async (q: string): Promise<[number, number] | null> => {
     try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+      const r = await fetch(`/api/geocoding?q=${encodeURIComponent(q)}&limit=1`);
       const d = await r.json();
       if (!d || !d.length) return null;
       return [parseFloat(d[0].lat), parseFloat(d[0].lon)];
@@ -133,7 +133,7 @@ export default function RouteMap({ pickup, drop, onDistance, onChange }: Props) 
 
   const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
     try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`);
+      const r = await fetch(`/api/geocoding?lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`);
       const d = await r.json();
       if (!d || !d.address) return "";
       const p = d.address;

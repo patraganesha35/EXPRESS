@@ -185,9 +185,9 @@ const handleReject = async () => {
     setLoading(true);
 
     try {
-      const appID = Number(process.env.NEXT_PUBLIC_ZEGO_APP_ID);
+      const appID = Number(process.env.NEXT_PUBLIC_ZEGO_APP_ID?.replace(/['"]/g, ""));
       const serverSecret =
-        process.env.NEXT_PUBLIC_ZEGO_SERVER_SECRET;
+        process.env.NEXT_PUBLIC_ZEGO_SERVER_SECRET?.replace(/['"]/g, "");
 
       const displayName = isAdmin
         ? "Admin"

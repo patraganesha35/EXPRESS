@@ -52,7 +52,7 @@ export default function BookPage() {
   const searchAddress = async (q: string, setResults: (r: Place[]) => void, restrict?: string | null) => {
     if (!q || q.trim().length < 3) { setResults([]); return; }
     try {
-      const res  = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q.trim())}&limit=8&addressdetails=1`);
+      const res  = await fetch(`/api/geocoding?q=${encodeURIComponent(q.trim())}&limit=8&addressdetails=1`);
       const data = await res.json();
       if (!Array.isArray(data)) { setResults([]); return; }
       let results: Place[] = data.map((f: any) => ({
@@ -101,7 +101,7 @@ export default function BookPage() {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
-          const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}&zoom=18&addressdetails=1`);
+          const res  = await fetch(`/api/geocoding?lat=${coords.latitude}&lon=${coords.longitude}&zoom=18&addressdetails=1`);
           const data = await res.json();
           if (data && data.address) {
             const p    = data.address;

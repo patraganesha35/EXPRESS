@@ -10,7 +10,7 @@ export async function GET(
 ) {
   await connectDb();
  const id=(await context.params).id
-  const booking = await Booking.findById(id).populate("driver vehicle")
+  const booking = await Booking.findById(id).populate("user driver vehicle")
 
 
   return NextResponse.json(booking);
