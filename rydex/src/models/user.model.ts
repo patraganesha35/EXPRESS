@@ -54,6 +54,9 @@ socketId:string | null
 
   lastLocationUpdate?: Date;
 
+  referralCode?: string;
+  referredBy?: mongoose.Types.ObjectId;
+
   /* ===== COMMON ===== */
 
   isEmailVerified: boolean;
@@ -199,6 +202,19 @@ const UserSchema = new Schema<IUser>(
 
     otp: String,
     otpExpiresAt: Date,
+
+    /* ===== REFERRALS ===== */
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    referredBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
   },
   { timestamps: true }
 );

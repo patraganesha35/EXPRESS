@@ -48,6 +48,17 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /* Capture referral code from URL and store in localStorage */
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const ref = searchParams.get("ref");
+      if (ref) {
+        localStorage.setItem("rydex_referred_by", ref.trim().toUpperCase());
+      }
+    }
+  }, []);
+
   /* Fetch vendor counts */
   useEffect(() => {
     if (userData?.role !== "vendor") return;

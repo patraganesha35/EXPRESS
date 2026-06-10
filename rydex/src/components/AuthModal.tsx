@@ -3,7 +3,7 @@
 import axios from "axios";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { X, Mail, Lock, Eye, EyeOff, User, Gift } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
@@ -22,8 +22,18 @@ export default function AuthModal({ open, onClose }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referredByCode, setReferredByCode] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (open && step === "signup") {
+      const savedRef = localStorage.getItem("rydex_referred_by");
+      if (savedRef) {
+        setReferredByCode(savedRef);
+      }
+    }
+  }, [open, step]);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   const [timer, setTimer] = useState(60);
@@ -138,6 +148,7 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         name,
         email,
         password,
+        referredByCode,
       });
       setStep("otp");
     } catch (error: any) {
@@ -152,6 +163,7 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
       name,
       email,
       password,
+      referredByCode,
     });
 
     setTimer(60);
@@ -380,6 +392,16 @@ const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
                           placeholder="Password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          className="w-full bg-transparent outline-none text-sm"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3 border border-black/20 rounded-xl px-4 py-3">
+                        <Gift size={18} className="text-gray-500" />
+                        <input
+                          placeholder="Referral code (optional)"
+                          value={referredByCode}
+                          onChange={(e) => setReferredByCode(e.target.value)}
                           className="w-full bg-transparent outline-none text-sm"
                         />
                       </div>

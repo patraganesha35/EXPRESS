@@ -4,7 +4,27 @@ import mongoose from "mongoose";
 import User from "@/models/user.model";
 import connectDb from "@/lib/db";
 import { sendMail } from "@/lib/mailer";
-; // 👈 DB connection helper
+import crypto from "crypto";
+
+async function generateUniqueReferralCode(name: string): Promise<string> {
+  const prefix = name.replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase() || "RYDX";
+  let isUnique = false;
+  let code = "";
+  let attempts = 0;
+  while (!isUnique && attempts < 10) {
+    const randomVal = Math.floor(1000 + Math.random() * 9000);
+    code = `${prefix}${randomVal}`;
+    const existing = await User.findOne({ referralCode: code });
+    if (!existing) {
+      isUnique = true;
+    }
+    attempts++;
+  }
+  if (!isUnique) {
+    code = `${prefix}${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+  }
+  return code;
+}
 
 /* ---------------- POST: REGISTER ---------------- */
 
@@ -13,7 +33,7 @@ export async function POST(req: NextRequest) {
     await connectDb();
 
     const body = await req.json();
-    const { name, email, password } = body;
+    const { name, email, password, referredByCode } = body;
 
     /* ---------- VALIDATION ---------- */
 
@@ -51,6 +71,19 @@ export async function POST(req: NextRequest) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
     const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000); // 1 minute
 
+    /* ---------- CHECK REFERRER ---------- */
+
+    let referrerId: mongoose.Types.ObjectId | undefined;
+    if (referredByCode) {
+      const referrer = await User.findOne({ referralCode: referredByCode.trim().toUpperCase() });
+      if (referrer) {
+        referrerId = referrer._id as mongoose.Types.ObjectId;
+      }
+    }
+
+    // Generate unique referral code for the new user
+    const userReferralCode = await generateUniqueReferralCode(name);
+
     /* ---------- CREATE / UPDATE USER ---------- */
 
     if (existingUser && !existingUser.isEmailVerified) {
@@ -59,6 +92,12 @@ export async function POST(req: NextRequest) {
       existingUser.password = hashedPassword;
       existingUser.otp = otp;
       existingUser.otpExpiresAt = otpExpiresAt;
+      if (!existingUser.referralCode) {
+        existingUser.referralCode = userReferralCode;
+      }
+      if (referrerId) {
+        existingUser.referredBy = referrerId;
+      }
 
       await existingUser.save();
     } else {
@@ -70,6 +109,8 @@ export async function POST(req: NextRequest) {
         isEmailVerified: false,
         otp,
         otpExpiresAt,
+        referralCode: userReferralCode,
+        referredBy: referrerId,
       });
     }
 

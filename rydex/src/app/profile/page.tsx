@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Camera, Save, ArrowLeft, User, Phone, Mail, Calendar, Loader2, Star } from "lucide-react";
+import { Camera, Save, ArrowLeft, User, Phone, Mail, Calendar, Loader2, Star, Gift, Copy, Check, Users, Share2 } from "lucide-react";
 import axios from "axios";
 import { setUserData } from "@/redux/userSlice";
 
@@ -31,6 +31,36 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Referral State
+  const [referralData, setReferralData] = useState<any>(null);
+  const [fetchingReferrals, setFetchingReferrals] = useState(true);
+  const [activeTab, setActiveTab] = useState<"level1" | "level2" | "level3">("level1");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (userData) {
+      const fetchReferrals = async () => {
+        try {
+          const res = await axios.get("/api/referrals");
+          setReferralData(res.data);
+        } catch (err) {
+          console.error("Failed to load referrals:", err);
+        } finally {
+          setFetchingReferrals(false);
+        }
+      };
+      fetchReferrals();
+    }
+  }, [userData]);
+
+  const handleCopyLink = () => {
+    if (!referralData?.referralCode) return;
+    const link = `${window.location.origin}/?ref=${referralData.referralCode}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -275,6 +305,136 @@ export default function ProfilePage() {
 
             </div>
           </form>
+        </motion.div>
+
+        {/* Referral Program Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="bg-[#111] border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl mt-10"
+        >
+          <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-white">
+              <Gift size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">Referral Program</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Invite your friends and grow your 3-level network.</p>
+            </div>
+          </div>
+
+          {fetchingReferrals ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="animate-spin text-white w-8 h-8" />
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Invite link container */}
+              <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-1.5 flex-1">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Your Unique Referral Link</p>
+                  <div className="flex items-center gap-2 bg-black/40 border border-white/5 rounded-xl px-4 py-3 select-all overflow-x-auto text-sm text-gray-300 font-mono">
+                    {typeof window !== "undefined"
+                      ? `${window.location.origin}/?ref=${referralData?.referralCode || ""}`
+                      : `/?ref=${referralData?.referralCode || ""}`}
+                  </div>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="w-full md:w-auto bg-white text-black px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition shadow-lg active:scale-95 shrink-0"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={16} /> Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} /> Copy Link
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Levels Overview Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-4 text-center">
+                  <p className="text-2xl font-black text-white">{referralData?.summary?.level1Count || 0}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Level 1 (Direct)</p>
+                </div>
+                <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-4 text-center">
+                  <p className="text-2xl font-black text-white">{referralData?.summary?.level2Count || 0}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Level 2</p>
+                </div>
+                <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-4 text-center">
+                  <p className="text-2xl font-black text-white">{referralData?.summary?.level3Count || 0}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Level 3</p>
+                </div>
+                <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-4 text-center col-span-2 md:col-span-1 border-white/10 bg-white/5">
+                  <p className="text-2xl font-black text-white">{referralData?.summary?.totalReferrals || 0}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Total Network</p>
+                </div>
+              </div>
+
+              {/* Tabbed view for levels */}
+              <div className="space-y-4">
+                <div className="flex border-b border-white/10">
+                  {(["level1", "level2", "level3"] as const).map((lvl, index) => (
+                    <button
+                      key={lvl}
+                      type="button"
+                      onClick={() => setActiveTab(lvl)}
+                      className={`flex-1 pb-3 text-sm font-bold capitalize border-b-2 transition ${
+                        activeTab === lvl
+                          ? "border-white text-white"
+                          : "border-transparent text-gray-500 hover:text-gray-300"
+                      }`}
+                    >
+                      Level {index + 1}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Referred list */}
+                <div className="min-h-[160px] flex flex-col justify-center">
+                  {referralData?.levels[activeTab]?.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-center py-6 text-gray-500">
+                      <Users size={36} className="text-gray-600 mb-3" />
+                      <p className="text-sm font-semibold">No referrals at this level yet</p>
+                      <p className="text-xs text-gray-600 mt-1">Share your link to invite friends and build your network.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                      {referralData?.levels[activeTab]?.map((referredUser: any) => (
+                        <div
+                          key={referredUser._id}
+                          className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 flex items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-white font-bold text-sm">
+                              {referredUser.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-white">{referredUser.name}</p>
+                              <p className="text-xs text-gray-400 font-mono">{referredUser.email}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Joined Date</p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              {new Date(referredUser.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
